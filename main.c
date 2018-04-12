@@ -2,7 +2,7 @@
 #include "rand.h"
 #include "dual7_seg.h"
 
-/* Function prototypes */
+/* Function prototypes kendra wuz here */
 void gpio_init(void);
 void roll(unsigned);
 
