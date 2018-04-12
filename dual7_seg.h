@@ -19,6 +19,7 @@
 
 #define SEVENSEG_REFRESH 18300 /* Refresh at ~60Hz */
 
+void disp_num(unsigned);
 void disp_digit(unsigned char, unsigned); /* Sets digit to display on 7-seg */
 
 #endif

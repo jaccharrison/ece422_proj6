@@ -37,6 +37,29 @@ void disp_digit(unsigned char n, unsigned d)
 }
 
 /**
+ * disp_num
+ * Given an unsigned integer value, this will find the bottom two digits in
+ * base 10 and display them on the 7 segment display
+ */
+void disp_num(unsigned n)
+{
+    n += 1;
+
+    if (n < 10) {
+        disp_digit(n + '0', DIGIT_2);
+        disp_digit('0', DIGIT_1);
+    } else if (n == 20) {
+        disp_digit('2', DIGIT_1);
+        disp_digit('0', DIGIT_2);
+    } else {
+        disp_digit('1', DIGIT_1);
+        disp_digit(n - 10 + '0', DIGIT_2);
+    }
+
+    return;
+}
+
+/**
  * show_digit2
  * Toggles outputs and sets bits corresponding to illuminated segments of the
  * display on P2OUT. This is the ISR for the TA0CCR0 interrupt.
@@ -44,6 +67,7 @@ void disp_digit(unsigned char n, unsigned d)
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void show_digit2(void)
 {
+    P1IE |= BIT0; /* Re-enable button interrupts */
     P2OUT = 0x00; /* Clear output bits */
     P1OUT |= BIT4; /* Display on second seven-seg digit */
     P2OUT |= digit_2;
@@ -58,6 +82,8 @@ __interrupt void show_digit2(void)
 #pragma vector = TIMER0_A1_VECTOR
 __interrupt void show_digit1(void)
 {
+    extern unsigned roll_delay, rolling;
+
     if (TAIV == 0x02) {
         P2OUT = 0x00; /* Clear output bits */
         P1OUT &= ~BIT4; /* Display on first seven-seg digit */
