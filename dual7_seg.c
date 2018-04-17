@@ -67,10 +67,12 @@ void disp_num(unsigned n)
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void show_digit2(void)
 {
+
     P1IE |= BIT0; /* Re-enable button interrupts */
     P2OUT = 0x00; /* Clear output bits */
     P1OUT |= BIT4; /* Display on second seven-seg digit */
     P2OUT |= digit_2;
+
     return;
 }
 
@@ -82,12 +84,25 @@ __interrupt void show_digit2(void)
 #pragma vector = TIMER0_A1_VECTOR
 __interrupt void show_digit1(void)
 {
+    static unsigned int count = 0;
     extern unsigned roll_delay, rolling;
+    static unsigned int delay = 5;
 
     if (TAIV == 0x02) {
-        P2OUT = 0x00; /* Clear output bits */
+        P2OUT = 0x00; /* Clear output bits*/
         P1OUT &= ~BIT4; /* Display on first seven-seg digit */
         P2OUT |= (digit_1 | BIT6);
+    }
+    if(roll_delay == 0){
+        delay = 5;
+    }
+    if(roll_delay == 2){
+        count++;
+        if(count == delay){
+            roll_delay = 1;
+            count = 0;
+            delay += 2;
+        }
     }
     return;
 }
