@@ -82,7 +82,7 @@ __interrupt void show_digit2(void)
         _BIC_SR(LPM1_EXIT);
     }
 
-    P1IE |= (BIT0 | BIT1); /* Re-enable button interrupts (debouncing logic) */
+    P1IE |= (BIT6 | BIT7); /* Re-enable button interrupts (debouncing logic) */
 
     P2OUT = digit_2; /* Display digit 2 */
 
@@ -93,17 +93,21 @@ __interrupt void show_digit2(void)
  * show_digit1
  * Toggles outputs and sets bits corresponding to illuminated segements of the
  * display on P2OUT. This is the ISR for the TA0CCR1 interrupt.
+ *
+ * Also counts out wait times for the LCD
  */
 #pragma vector = TIMER0_A1_VECTOR
 __interrupt void show_digit1(void)
 {
-    static unsigned int count = 0;
-    extern unsigned roll_delay, rolling;
-    static unsigned int delay = 5;
+    extern unsigned lcd_flag, wait_cycles;
 
-    if (TAIV == 0x02) {
-        P2OUT = (digit_1 | BIT6);
+    if (lcd_flag) {
+        lcd_flag = 0;
+        _BIC_SR(LPM1_EXIT);
     }
+
+    P2OUT = (digit_1 | BIT6);
+    TAIV = 0;
 
     return;
 }
