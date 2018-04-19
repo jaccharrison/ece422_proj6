@@ -38,8 +38,8 @@ void disp_digit(unsigned char n, unsigned d)
 
 /**
  * disp_num
- * Given an unsigned integer value, this will find the bottom two digits in
- * base 10 and display them on the 7 segment display
+ * Given an unsigned integer value <= 20, this will find the bottom two digits
+ * in base 10 and display them on the 7 segment display
  */
 void disp_num(unsigned n)
 {
@@ -63,15 +63,28 @@ void disp_num(unsigned n)
  * show_digit2
  * Toggles outputs and sets bits corresponding to illuminated segments of the
  * display on P2OUT. This is the ISR for the TA0CCR0 interrupt.
+ *
+ * Also, re-enables the P1.0 and P1.1 button interrupts - they were disabled
+ * as a part of the debouncing logic
+ *
+ * Also, keeps track of delay when we're displaying the 'rolling' effect on a
+ * die.
  */
 #pragma vector = TIMER0_A0_VECTOR
 __interrupt void show_digit2(void)
 {
+    extern unsigned die_delay, roll_flag;
 
-    P1IE |= BIT0; /* Re-enable button interrupts */
-    P2OUT = 0x00; /* Clear output bits */
-    P1OUT |= BIT4; /* Display on second seven-seg digit */
-    P2OUT |= digit_2;
+    WDTCTL = WDTPW | WDTCNTCL; /* Pet WDT */
+
+    if (roll_flag && !(--die_delay)) {
+        roll_flag = die_delay = 0;
+        _BIC_SR(LPM1_EXIT);
+    }
+
+    P1IE |= (BIT0 | BIT1); /* Re-enable button interrupts (debouncing logic) */
+
+    P2OUT = digit_2; /* Display digit 2 */
 
     return;
 }
@@ -89,20 +102,8 @@ __interrupt void show_digit1(void)
     static unsigned int delay = 5;
 
     if (TAIV == 0x02) {
-        P2OUT = 0x00; /* Clear output bits*/
-        P1OUT &= ~BIT4; /* Display on first seven-seg digit */
-        P2OUT |= (digit_1 | BIT6);
+        P2OUT = (digit_1 | BIT6);
     }
-    if(roll_delay == 0){
-        delay = 5;
-    }
-    if(roll_delay == 2){
-        count++;
-        if(count == delay){
-            roll_delay = 1;
-            count = 0;
-            delay += 2;
-        }
-    }
+
     return;
 }

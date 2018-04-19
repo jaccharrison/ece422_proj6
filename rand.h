@@ -1,3 +1,5 @@
+/* rand.h */
+
 #ifndef RANDH
 #define RANDH
 
